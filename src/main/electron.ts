@@ -39,7 +39,10 @@ ipcMain.handle('start-scan', async (event, folderPath: string) => {
       win?.webContents.send('scan-progress', { current: count, total });
     };
 
-    const tree = await getFolderTree(folderPath, sendProgress, state);
+    const sendError = (error: { path: string; message: string }) => {
+      win?.webContents.send('scan-error', error);
+    };
+    const tree = await getFolderTree(folderPath, sendProgress, state, sendError);
     return tree;
   } catch (error) {
     throw error;

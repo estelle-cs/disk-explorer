@@ -69,6 +69,15 @@
           }}
           analysé{{ scannedCount > 1 ? "s" : "" }}
         </p>
+
+        <div v-if="errors.length > 0" class="error-box">
+          <p class="body-xs"><strong>Erreurs rencontrées :</strong></p>
+          <ul class="error-list">
+            <li v-for="(err, i) in errors" :key="i">
+              ⚠️ {{ err.path }} — {{ err.message }}
+            </li>
+          </ul>
+        </div>
       </section>
     </CardContainer>
 
@@ -87,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted } from "vue";
 import TreeView from "./components/TreeView.vue";
 import CardContainer from "@/components/CardContainer.vue";
 import BaseButton from "@/components/BaseButton.vue";
@@ -102,6 +111,8 @@ const scanStatus = ref<"idle" | "loading" | "done">("idle");
 const scannedCount = ref(0);
 const totalCount = ref(0);
 
+const errors = ref<{ path: string; message: string }[]>([]);
+
 onMounted(() => {
   window.electron.on(
     "scan-progress",
@@ -110,6 +121,12 @@ onMounted(() => {
       totalCount.value = payload.total;
     }
   );
+});
+
+onMounted(() => {
+  window.electron.on("scan-error", (err: { path: string; message: string }) => {
+    errors.value.push(err);
+  });
 });
 
 async function selectFolder() {
@@ -220,7 +237,6 @@ async function scanSelectedFolder() {
 
 .bluebar {
   background-color: #4c89ee;
-  animation: progress-loading 1s linear infinite alternate;
 }
 
 .progress-container {
@@ -246,27 +262,33 @@ async function scanSelectedFolder() {
 }
 
 .progress-bar.foreground {
-  background-color: #4c89ee; 
+  background-color: #4c89ee;
   z-index: 1;
   width: 0%;
   transition: width 0.3s ease;
 }
 
 .progress-bar.foreground.animated {
-  animation: progress-loading 1s linear infinite alternate;
+  animation: 1s linear infinite alternate;
 }
 
 .progress-bar.foreground.full {
   width: 100%;
 }
 
-@keyframes progress-loading {
-  from {
-    width: 30%;
-  }
-  to {
-    width: 100%;
-  }
+.error-box {
+  margin-top: 0.5rem;
+  background-color: #fff7ed;
+  border-left: 4px solid #f97316;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+}
+
+.error-list {
+  font-size: 12px;
+  color: #92400e;
+  margin: 0;
+  padding-left: 1rem;
 }
 </style>
 

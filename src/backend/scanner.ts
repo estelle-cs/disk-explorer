@@ -4,15 +4,27 @@ const path = require('path');
 export async function getFolderTree(
   dir: string,
   onProgress?: (count: number) => void,
-  state?: { current: number } // état partagé
+  state?: { current: number },
+  onError?: (error: { path: string; message: string }) => void
 ): Promise<any> {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
+  let entries: any[] = [];
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch (err: any) {
+    onError?.({ path: dir, message: err.message || 'Erreur inconnue' });
+    return {
+      name: path.basename(dir),
+      path: dir,
+      size: 0,
+      children: [],
+    };
+  }
 
   const children = await Promise.all(
     entries.map(async (entry: any) => {
       const fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        const child = await getFolderTree(fullPath, onProgress, state);
+        const child = await getFolderTree(fullPath, onProgress, state, onError);
         return {
           name: entry.name,
           path: fullPath,
@@ -20,16 +32,19 @@ export async function getFolderTree(
           children: child.children,
         };
       } else if (entry.isFile()) {
-        const { size } = await fs.stat(fullPath);
-        if (state) {
-          state.current++;
-          onProgress?.(state.current);
+        try {
+          const { size } = await fs.stat(fullPath);
+          state && state.current++;
+          onProgress?.(state?.current ?? 0);
+          return {
+            name: entry.name,
+            path: fullPath,
+            size,
+          };
+        } catch (err: any) {
+          onError?.({ path: fullPath, message: err.message || 'Erreur inconnue' });
+          return null;
         }
-        return {
-          name: entry.name,
-          path: fullPath,
-          size,
-        };
       }
     })
   );
