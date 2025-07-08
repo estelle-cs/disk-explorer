@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "dev": "vite",
-    "start": "electron .",
+  "build:electron": "tsc src/preload/preload.ts --outDir dist/preload && tsc src/main/electron.ts --outDir dist/main",
+    "start": "npm run build:electron && electron dist/main/main/electron.js",
     "build": "vite build",
     "pack": "electron-builder"
   },
@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/estelle-cs/disk-explorer#readme",
   "devDependencies": {
+    "@types/vue": "^2.0.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "electron": "^37.2.0",
     "electron-builder": "^26.0.12",
