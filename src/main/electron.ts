@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import * as path from 'path';
-import { getFolderTree } from '../backend/scanner'; // ⚠️ adapte le chemin si besoin
+import { getFolderTree, countFiles } from '../backend/scanner'; // ⚠️ adapte le chemin si besoin
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -29,9 +29,17 @@ ipcMain.handle('select-folder', async () => {
   return result.filePaths[0];
 });
 
-ipcMain.handle('start-scan', async (_event, folderPath: string) => {
+ipcMain.handle('start-scan', async (event, folderPath: string) => {
   try {
-    const tree = await getFolderTree(folderPath);
+    const win = BrowserWindow.getFocusedWindow();
+    const total = await countFiles(folderPath);
+    const state = { current: 0 };
+
+    const sendProgress = (count: number) => {
+      win?.webContents.send('scan-progress', { current: count, total });
+    };
+
+    const tree = await getFolderTree(folderPath, sendProgress, state);
     return tree;
   } catch (error) {
     throw error;

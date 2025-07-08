@@ -32,7 +32,7 @@ function onClick() {
   background-color: white;
   border: 1px solid #d1d5db;
   border-radius: 8px;
-  padding: 0.5rem 1rem;
+  padding: 0rem 1rem;
   font-size: 1rem;
   color: #6b7280;
   cursor: pointer;
