@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-  "build:electron": "tsc src/preload/preload.ts --outDir dist/preload && tsc src/main/electron.ts --outDir dist/main",
+    "build:electron": "tsc src/preload/preload.ts --outDir dist/preload && tsc src/main/electron.ts --outDir dist/main",
     "start": "npm run build:electron && electron dist/main/main/electron.js",
     "build": "vite build",
     "pack": "electron-builder"
