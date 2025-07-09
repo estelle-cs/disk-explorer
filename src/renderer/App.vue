@@ -37,7 +37,7 @@
     <CardContainer>
       <section class="flex column g8">
         <div class="flex space-between align-center">
-          <span class="body-m">État du scan</span>
+          <span class="body-l">État du scan</span>
           <div class="flex row g4 align-center">
             <span
               class="status-dot"
@@ -87,17 +87,24 @@
       </section>
     </CardContainer>
 
-    <main class="app-main">
-      <div v-if="loading">
-        <p>Scan en cours…</p>
-      </div>
-
-      <TreeView v-else-if="results" :treeData="results" />
-
-      <div v-else>
-        <p>Sélectionnez un dossier pour commencer l'analyse.</p>
-      </div>
-    </main>
+    <CardContainer>
+      <section class="flex column g4">
+        <span class="body-l">Résultats de l'analyse</span>
+        <span class="body-xs"
+          >Fichiers et dossiers par taille décroissante</span
+        >
+        <hr />
+      </section>
+      <section class="results">
+        <div v-if="loading">
+          <p class="body-m">Scan en cours…</p>
+        </div>
+        <TreeView v-else-if="results" :treeData="results" />
+        <div v-else>
+          <p class="body-m">Sélectionnez un dossier pour commencer l'analyse.</p>
+        </div>
+      </section>
+    </CardContainer>
   </div>
 </template>
 
@@ -166,21 +173,26 @@ async function scanSelectedFolder() {
 
 <style scoped>
 .app-container {
-  font-family: sans-serif;
   height: 100vh;
   display: flex;
   flex-direction: column;
 }
-.app-main {
-  flex: 1;
-  padding: 1rem;
-  overflow: auto;
+
+.results {
+  height: 30rem;
+  overflow: scroll;
 }
 
-.body-m {
+.body-l {
   font-size: 16px;
   color: #121826;
   font-weight: 600;
+}
+
+.body-m {
+  font-size: 14px;
+  color: #121826;
+  font-weight: 500;
 }
 
 .body-xs {
@@ -214,6 +226,16 @@ async function scanSelectedFolder() {
 
 .g8 {
   gap: 8px;
+}
+
+.g12 {
+  gap: 12px;
+}
+
+hr {
+  border-bottom: 0px #E6E7EB solid;
+  width: 100%;
+  margin: 25px 0px;
 }
 
 .status-dot {
@@ -296,6 +318,27 @@ async function scanSelectedFolder() {
   margin: 0;
   padding-left: 1rem;
 }
+
+.logo {
+  color: #4C83EE;
+  font-size: 24px;
+}
+
+.refresh-btn {
+  background-color: #F3F4F6;
+    color: #3A4150;
+    font-size: 12px;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+.refresh-btn:hover {
+  background-color: #e7e7e7;
+  cursor: pointer;
+}
+
+
 </style>
 
 <style>
