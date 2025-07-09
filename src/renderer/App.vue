@@ -2,10 +2,16 @@
   <div class="app-container">
     <CardContainer>
       <section class="flex space-between items-center">
-        <div class="align-center">
+        <div class="flex row g12 align-center">
+          <font-awesome-icon
+              icon="hard-drive"
+              class="logo"
+            />
           <h2>Disk Explorer</h2>
         </div>
-        <button class="refresh-btn"><span>🔄</span> Actualiser</button>
+        <button class="refresh-btn" @click="scanSelectedFolder()"><font-awesome-icon
+              icon="rotate-right"
+            /> Actualiser</button>
       </section>
     </CardContainer>
 

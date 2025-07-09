@@ -1,27 +1,22 @@
 <!-- components/PathInput.vue -->
 <template>
   <div class="path-input" @click="onClick">
-    <input
-      type="text"
-      class="input"
-      :value="modelValue"
-      readonly
-    />
-    <span class="icon">📁</span>
+    <input type="text" class="input" :value="modelValue" readonly />
+    <font-awesome-icon icon="folder" class="icon" />
   </div>
 </template>
 
 <script setup lang="ts">
 defineProps<{
-  modelValue: string
-}>()
+  modelValue: string;
+}>();
 
 const emit = defineEmits<{
-  (e: 'click'): void
-}>()
+  (e: "click"): void;
+}>();
 
 function onClick() {
-  emit('click')
+  emit("click");
 }
 </script>
 
@@ -50,8 +45,6 @@ function onClick() {
 }
 
 .icon {
-  margin-left: 0.5rem;
-  font-size: 1.2rem;
   color: #9ca3af;
 }
 </style>
