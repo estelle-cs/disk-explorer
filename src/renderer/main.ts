@@ -22,7 +22,10 @@ import {
   faHardDrive,
   faRotateRight,
   faPlay,
-  faFolderOpen
+  faFolderOpen,
+  faExpand,
+  faTriangleExclamation,
+  faClock,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -42,7 +45,10 @@ library.add(
   faHardDrive,
   faRotateRight,
   faPlay,
-  faFolderOpen
+  faFolderOpen,
+  faExpand,
+  faTriangleExclamation,
+  faClock
 );
 
 const app = createApp(App);

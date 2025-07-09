@@ -3,15 +3,12 @@
     <CardContainer>
       <section class="flex space-between items-center">
         <div class="flex row g12 align-center">
-          <font-awesome-icon
-              icon="hard-drive"
-              class="logo"
-            />
+          <font-awesome-icon icon="hard-drive" class="logo" />
           <h2>Disk Explorer</h2>
         </div>
-        <button class="refresh-btn" @click="scanSelectedFolder()"><font-awesome-icon
-              icon="rotate-right"
-            /> Actualiser</button>
+        <button class="refresh-btn" @click="scanSelectedFolder()">
+          <font-awesome-icon icon="rotate-right" /> Actualiser
+        </button>
       </section>
     </CardContainer>
 
@@ -71,12 +68,35 @@
             }"
           ></div>
         </div>
-        <p class="scan-count">
-          {{ scannedCount }} / {{ totalCount }} fichier{{
-            totalCount > 1 ? "s" : ""
-          }}
-          analysé{{ scannedCount > 1 ? "s" : "" }}
-        </p>
+        <div v-if="scanStatus === 'done'" class="scan-summary">
+          <div class="summary-box">
+            <font-awesome-icon icon="file" class="info-icon" style="color:#4C83EE"/>
+            <div class="summary-value">{{ scannedCount.toLocaleString() }}</div>
+            <div class="summary-label">Fichiers analysés</div>
+          </div>
+          <div class="summary-box">
+            <font-awesome-icon icon="folder-open" class="info-icon" style="color:#F59E0B"/>
+            <div class="summary-value">{{ getFolderCount(results) }}</div>
+            <div class="summary-label">Dossiers</div>
+          </div>
+          <div class="summary-box">
+            <font-awesome-icon icon="expand" class="info-icon" style="color:#A855F7"/>
+            <div class="summary-value">
+              {{ formatSize(getTotalSize(results)) }}
+            </div>
+            <div class="summary-label">Espace total</div>
+          </div>
+          <div class="summary-box">
+            <font-awesome-icon icon="triangle-exclamation" class="info-icon" style="color:#EF4444" />
+            <div class="summary-value">{{ getLargeFileCount(results) }}</div>
+            <div class="summary-label">Fichiers volumineux</div>
+          </div>
+          <div class="summary-box">
+            <font-awesome-icon icon="clock" class="info-icon"/>
+            <div class="summary-value">{{ formatDuration(scanDuration) }}</div>
+            <div class="summary-label">Durée</div>
+          </div>
+        </div>
 
         <div v-if="errors.length > 0" class="error-box">
           <p class="body-xs"><strong>Erreurs rencontrées :</strong></p>
@@ -103,7 +123,9 @@
         </div>
         <TreeView v-else-if="results" :treeData="results" />
         <div v-else>
-          <p class="body-m">Sélectionnez un dossier pour commencer l'analyse.</p>
+          <p class="body-m">
+            Sélectionnez un dossier pour commencer l'analyse.
+          </p>
         </div>
       </section>
     </CardContainer>
@@ -127,6 +149,9 @@ const scannedCount = ref(0);
 const totalCount = ref(0);
 
 const errors = ref<{ path: string; message: string }[]>([]);
+
+const scanStartTime = ref<number | null>(null);
+const scanDuration = ref<number>(0); // en secondes
 
 onMounted(() => {
   window.electron.on(
@@ -160,16 +185,59 @@ async function scanSelectedFolder() {
 
   loading.value = true;
   scanStatus.value = "loading";
+  scanStartTime.value = Date.now();
+
   try {
     const data = await window.electron.invoke("start-scan", selectedPath.value);
     results.value = data ? [data] : null;
     scanStatus.value = "done";
+
+    const endTime = Date.now();
+    scanDuration.value = Math.floor((endTime - scanStartTime.value!) / 1000); // secondes
   } catch (error) {
     console.error("Erreur de scan", error);
     scanStatus.value = "idle";
   } finally {
     loading.value = false;
   }
+}
+
+function getFolderCount(nodes: any[]): number {
+  let count = 0;
+  for (const node of nodes) {
+    if (node.children) {
+      count += 1 + getFolderCount(node.children);
+    }
+  }
+  return count;
+}
+
+function getTotalSize(nodes: any[]): number {
+  return nodes.reduce((sum, node) => sum + node.size, 0);
+}
+
+function getLargeFileCount(nodes: any[]): number {
+  let count = 0;
+  for (const node of nodes) {
+    if (!node.children && node.size >= 10 * 1e9) count++;
+    else if (node.children) count += getLargeFileCount(node.children);
+  }
+  return count;
+}
+
+function formatSize(size: number): string {
+  if (size > 1e9) return `${(size / 1e9).toFixed(1)} GB`;
+  if (size > 1e6) return `${(size / 1e6).toFixed(1)} MB`;
+  if (size > 1e3) return `${(size / 1e3).toFixed(1)} KB`;
+  return `${size} B`;
+}
+
+function formatDuration(sec: number): string {
+  const minutes = Math.floor(sec / 60);
+  const seconds = sec % 60;
+  return minutes > 0
+    ? `${minutes} min ${seconds} s`
+    : `${seconds} s`;
 }
 </script>
 
@@ -239,7 +307,7 @@ async function scanSelectedFolder() {
 }
 
 hr {
-  border-bottom: 0px #E6E7EB solid;
+  border-bottom: 0px #e6e7eb solid;
   width: 100%;
   margin: 25px 0px;
 }
@@ -326,17 +394,17 @@ hr {
 }
 
 .logo {
-  color: #4C83EE;
+  color: #4c83ee;
   font-size: 24px;
 }
 
 .refresh-btn {
-  background-color: #F3F4F6;
-    color: #3A4150;
-    font-size: 12px;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
+  background-color: #f3f4f6;
+  color: #3a4150;
+  font-size: 12px;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
 }
 
 .refresh-btn:hover {
@@ -344,7 +412,36 @@ hr {
   cursor: pointer;
 }
 
+.scan-summary {
+  display: flex;
+  gap: 12px;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
 
+.summary-box {
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  flex: 1;
+  min-width: 120px;
+}
+
+.summary-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #121826;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.info-icon {
+  margin-bottom: 5px;
+}
 </style>
 
 <style>
