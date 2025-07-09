@@ -21,6 +21,8 @@ import {
   faFileLines,
   faHardDrive,
   faRotateRight,
+  faPlay,
+  faFolderOpen
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -38,7 +40,9 @@ library.add(
   faFilePowerpoint,
   faFileLines,
   faHardDrive,
-  faRotateRight
+  faRotateRight,
+  faPlay,
+  faFolderOpen
 );
 
 const app = createApp(App);

@@ -18,9 +18,10 @@
     <CardContainer>
       <section class="flex column g8">
         <span class="body-xs">Sélectionnez un dossier ou un disque</span>
-        <div class="flex g8">
+        <div class="flex g8 wrap">
           <PathInput :modelValue="selectedPath" @click="selectFolder()" />
           <BaseButton variant="blue-button" @click="selectFolder()">
+            <font-awesome-icon icon="folder-open" />
             Parcourir
           </BaseButton>
           <BaseButton
@@ -28,6 +29,7 @@
             @click="scanSelectedFolder()"
             :disabled="!selectedPath"
           >
+            <font-awesome-icon icon="play" />
             Analyser
           </BaseButton>
         </div>
@@ -210,6 +212,10 @@ async function scanSelectedFolder() {
 
 .row {
   flex-direction: row;
+}
+
+.wrap {
+  flex-wrap: wrap;
 }
 
 .space-between {

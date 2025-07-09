@@ -1,7 +1,12 @@
 <template>
   <div class="tree-view">
     <ul>
-      <li v-for="item in sortedTree" :key="item.path" class="tree-item">
+      <li
+        v-for="item in sortedTree"
+        :key="item.path"
+        class="tree-item"
+        :class="getSizeTagClass(item)"
+      >
         <div
           class="tree-label"
           @click="toggle(item.path)"
@@ -17,6 +22,16 @@
               v-if="item.children"
               icon="folder"
               class="icon"
+              :style="{
+                color:
+                  getSizeTag(item.size)?.label === 'Volumineux'
+                    ? '#EF4444'
+                    : getSizeTag(item.size)?.label === 'Gros'
+                    ? '#F59E0B'
+                    : getSizeTag(item.size)?.label === 'Moyen'
+                    ? '#FACC15'
+                    : '#9da3ae',
+              }"
             />
             <font-awesome-icon
               v-if="!item.children"
@@ -24,11 +39,11 @@
               :class="'file-icon ' + getFileIcon(item.name)"
             />
             <span class="item-name">{{ item.name }}</span>
+            <SizeTag v-if="item.children" :size="item.size" />
           </div>
           <span class="item-size">{{ formatSize(item.size) }}</span>
         </div>
 
-        <!-- Sous-dossiers visibles seulement si ouvert -->
         <TreeView
           v-if="item.children && isOpen(item.path)"
           :treeData="item.children"
@@ -40,6 +55,7 @@
 
 <script setup lang="ts">
 import { defineProps, ref, computed } from "vue";
+import SizeTag from '@/components/SizeTag.vue';
 
 interface TreeNode {
   name: string;
@@ -107,6 +123,34 @@ function getFileIcon(name: string): string {
       return "file";
   }
 }
+
+function getSizeTag(size: number): { label: string; class: string } | null {
+  if (size >= 10 * 1e9) return { label: 'Volumineux', class: 'tag-red' };
+  if (size >= 5 * 1e9) return { label: 'Gros', class: 'tag-orange' };
+  if (size >= 1 * 1e9) return { label: 'Moyen', class: 'tag-yellow' };
+  if (size >= 100 * 1e6) return { label: 'Petit', class: 'tag-blue' };
+  return { label: 'Léger', class: 'tag-green' };
+}
+
+function getSizeTagClass(item: any): string {
+  if (getSizeTag(item.size)?.label === 'Volumineux' && item.children) {
+    return 'tag-red';
+  }
+  if (getSizeTag(item.size)?.label === 'Gros' && item.children) {
+    return 'tag-orange';
+  }
+  if (getSizeTag(item.size)?.label === 'Moyen' && item.children) {
+    return 'tag-yellow';
+  }
+  if (getSizeTag(item.size)?.label === 'Petit' && item.children) {
+    return 'tag-blue';
+  }
+  if (getSizeTag(item.size)?.label === 'Léger' && item.children) {
+    return 'tag-green';
+  }
+  return '';
+}
+
 </script>
 
 <style scoped>
@@ -126,11 +170,12 @@ function getFileIcon(name: string): string {
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  padding: 5px;
+  padding: 5px 5px 5px 6px;
+  border-radius: 5px;
 }
 
 .folder {
-  padding: 10px;
+  padding: 15px;
 }
 
 .item-name {
@@ -152,16 +197,32 @@ function getFileIcon(name: string): string {
 
 .file-icon {
   font-size: 12px;
-  color: #4C83EE;
+  color: #4c83ee;
 }
-.file-pdf { color: #EF4444; }
-.file-zipper { color: #A855F7; }
-.file-video { color: #3b82f6; }
-.file-audio { color: #10b981; }
-.file-word { color: #2563eb; }
-.file-excel { color: #22c55e; }
-.file-powerpoint { color: #ea580c; }
-.file-lines { color: #6b7280; }
+.file-pdf {
+  color: #ef4444;
+}
+.file-zipper {
+  color: #a855f7;
+}
+.file-video {
+  color: #3b82f6;
+}
+.file-audio {
+  color: #10b981;
+}
+.file-word {
+  color: #2563eb;
+}
+.file-excel {
+  color: #22c55e;
+}
+.file-powerpoint {
+  color: #ea580c;
+}
+.file-lines {
+  color: #6b7280;
+}
 
 .flex {
   display: flex;
@@ -174,5 +235,61 @@ function getFileIcon(name: string): string {
 }
 .gap-8 {
   gap: 8px;
+}
+
+.size-tag {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  background-color: #e5e7eb;
+  color: #1f2937;
+}
+
+.tag-red > .tree-label {
+  border-left: 3px solid #EF4444;
+  background-color: #e38d8d;;
+}
+.tag-orange > .tree-label {
+  border-left: 3px solid #F59E0B;
+  background-color: #ffeac8;
+}
+.tag-yellow > .tree-label {
+  border-left: 3px solid #FACC15;
+  background-color: #fffef0;
+}
+
+.tag-green > .tree-label {
+  border-left: 3px solid #10B981;
+  background-color: #f1fff8;
+}
+
+.tag-blue > .tree-label {
+  border-left: 3px solid #3B82F6;
+  background-color: #f6faff;
+}
+
+.tag-red .size-tag {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+.tag-orange .size-tag {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+.tag-yellow .size-tag {
+  background-color: #fef9c3;
+  color: #92400e;
+}
+
+.tag-blue .size-tag {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+.tag-green .size-tag {
+  background-color: #d1fae5;
+  color: #047857;
 }
 </style>
