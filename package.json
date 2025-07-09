@@ -2,13 +2,39 @@
   "name": "disk-explorer",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/main/main/electron.js",
+  "build": {
+    "appId": "com.diskexplorer.app",
+    "productName": "Disk Explorer",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "dist/**/*",
+      "dist/main/**/*",
+      "dist/preload/**/*",
+      "src/backend/**/*"
+    ],
+    "extraMetadata": {
+      "main": "dist/main/main/electron.js"
+    },
+    "mac": {
+      "icon": "assets/icon-mac.icns"
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": "nsis"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build:electron": "tsc src/preload/preload.ts --outDir dist/preload && tsc src/main/electron.ts --outDir dist/main",
     "start": "npm run build:electron && electron dist/main/main/electron.js",
     "build": "vite build",
-    "pack": "electron-builder"
+    "pack": "electron-builder",
+    "build:app": "npm run build && npm run build:electron && electron-builder",
+    "build:mac": "npm run build && npm run build:electron && electron-builder --mac",
+    "build:win": "npm run build && npm run build:electron && electron-builder --win"
   },
   "repository": {
     "type": "git",
