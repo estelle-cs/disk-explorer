@@ -70,29 +70,45 @@
         </div>
         <div v-if="scanStatus === 'done'" class="scan-summary">
           <div class="summary-box">
-            <font-awesome-icon icon="file" class="info-icon" style="color:#4C83EE"/>
+            <font-awesome-icon
+              icon="file"
+              class="info-icon"
+              style="color: #4c83ee"
+            />
             <div class="summary-value">{{ scannedCount.toLocaleString() }}</div>
             <div class="summary-label">Fichiers analysés</div>
           </div>
           <div class="summary-box">
-            <font-awesome-icon icon="folder-open" class="info-icon" style="color:#F59E0B"/>
+            <font-awesome-icon
+              icon="folder-open"
+              class="info-icon"
+              style="color: #f59e0b"
+            />
             <div class="summary-value">{{ getFolderCount(results) }}</div>
             <div class="summary-label">Dossiers</div>
           </div>
           <div class="summary-box">
-            <font-awesome-icon icon="expand" class="info-icon" style="color:#A855F7"/>
+            <font-awesome-icon
+              icon="expand"
+              class="info-icon"
+              style="color: #a855f7"
+            />
             <div class="summary-value">
               {{ formatSize(getTotalSize(results)) }}
             </div>
             <div class="summary-label">Espace total</div>
           </div>
           <div class="summary-box">
-            <font-awesome-icon icon="triangle-exclamation" class="info-icon" style="color:#EF4444" />
+            <font-awesome-icon
+              icon="triangle-exclamation"
+              class="info-icon"
+              style="color: #ef4444"
+            />
             <div class="summary-value">{{ getLargeFileCount(results) }}</div>
             <div class="summary-label">Fichiers volumineux</div>
           </div>
           <div class="summary-box">
-            <font-awesome-icon icon="clock" class="info-icon"/>
+            <font-awesome-icon icon="clock" class="info-icon" />
             <div class="summary-value">{{ formatDuration(scanDuration) }}</div>
             <div class="summary-label">Durée</div>
           </div>
@@ -111,17 +127,39 @@
 
     <CardContainer>
       <section class="flex column g4">
-        <span class="body-l">Résultats de l'analyse</span>
-        <span class="body-xs"
-          >Fichiers et dossiers par taille décroissante</span
-        >
+        <div class="flex row space-between">
+          <div class="flex column g4">
+            <span class="body-l">Résultats de l'analyse</span>
+            <span class="body-xs"
+              >Fichiers et dossiers par taille décroissante</span
+            >
+          </div>
+          <Filters
+            v-if="results && scanStatus === 'done'"
+            :sizeFilter="sizeFilter"
+            @update:filters="handleFilters"
+          />
+        </div>
+
         <hr />
       </section>
       <section class="results">
         <div v-if="loading">
           <p class="body-m">Scan en cours…</p>
         </div>
-        <TreeView v-else-if="results" :treeData="results" />
+        <div
+          v-if="results && scanStatus === 'done'"
+          class="filters flex g8 wrap"
+        ></div>
+        <TreeView
+          v-if="filteredResults && filteredResults.length"
+          :treeData="filteredResults"
+        />
+        <div v-else-if="results && scanStatus === 'done'">
+          <p class="body-m">
+            Aucun fichier ne correspond aux filtres sélectionnés.
+          </p>
+        </div>
         <div v-else>
           <p class="body-m">
             Sélectionnez un dossier pour commencer l'analyse.
@@ -133,11 +171,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import TreeView from "./components/TreeView.vue";
 import CardContainer from "@/components/CardContainer.vue";
 import BaseButton from "@/components/BaseButton.vue";
 import PathInput from "@/components/PathInput.vue";
+import Filters from "@/components/Filters.vue";
 
 const loading = ref(false);
 const results = ref<any>(null);
@@ -152,6 +191,39 @@ const errors = ref<{ path: string; message: string }[]>([]);
 
 const scanStartTime = ref<number | null>(null);
 const scanDuration = ref<number>(0); // en secondes
+
+const sizeFilter = ref<string>("");
+
+const filteredResults = computed(() => {
+  if (!results.value) return [];
+
+  const sizeThreshold = parseSizeFilter(sizeFilter.value);
+
+  function matches(node: any): boolean {
+    if (!sizeThreshold) return true;
+    const { op, val } = sizeThreshold;
+    return op === ">=" ? node.size >= val : node.size < val;
+  }
+
+  function filterNodes(nodes: any[]): any[] {
+    return nodes
+      .map((node) => {
+        if (node.children) {
+          const filteredChildren = filterNodes(node.children);
+          // si au moins un enfant correspond, on garde le parent
+          if (filteredChildren.length > 0 || matches(node)) {
+            return { ...node, children: filteredChildren };
+          }
+          return null;
+        } else {
+          return matches(node) ? node : null;
+        }
+      })
+      .filter(Boolean);
+  }
+
+  return filterNodes(results.value);
+});
 
 onMounted(() => {
   window.electron.on(
@@ -168,6 +240,13 @@ onMounted(() => {
     errors.value.push(err);
   });
 });
+
+function parseSizeFilter(filter: string): { op: string; val: number } | null {
+  if (!filter) return null;
+  const match = filter.match(/(>=|<)\s*(\d+)/);
+  if (!match) return null;
+  return { op: match[1], val: Number(match[2]) };
+}
 
 async function selectFolder() {
   const folderPath = await window.electron.invoke("select-folder");
@@ -235,9 +314,11 @@ function formatSize(size: number): string {
 function formatDuration(sec: number): string {
   const minutes = Math.floor(sec / 60);
   const seconds = sec % 60;
-  return minutes > 0
-    ? `${minutes} min ${seconds} s`
-    : `${seconds} s`;
+  return minutes > 0 ? `${minutes} min ${seconds} s` : `${seconds} s`;
+}
+
+function handleFilters(newSize: string) {
+  sizeFilter.value = newSize;
 }
 </script>
 
