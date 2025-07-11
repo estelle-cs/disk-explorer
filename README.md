@@ -2,8 +2,6 @@
 
 Disk Explorer est une application de bureau construite avec **Electron** et **Vue 3** qui permet d'analyser l'utilisation du disque de manière visuelle et rapide. Elle scanne un dossier ou un disque sélectionné et fournit une arborescence détaillée avec des statistiques sur la taille, le nombre de fichiers, et les erreurs rencontrées.
 
-![screenshot](./screenshot.png)
-
 ## 🚀 Fonctionnalités
 
 - 📁 Sélection d'un dossier ou d'un disque à scanner
