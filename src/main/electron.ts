@@ -30,8 +30,9 @@ ipcMain.handle('select-folder', async () => {
 });
 
 ipcMain.handle('start-scan', async (event, folderPath: string) => {
+  const win = BrowserWindow.getFocusedWindow();
+  const errors: { path: string; message: string }[] = [];
   try {
-    const win = BrowserWindow.getFocusedWindow();
     const total = await countFiles(folderPath);
     const state = { current: 0 };
 
@@ -41,10 +42,16 @@ ipcMain.handle('start-scan', async (event, folderPath: string) => {
 
     const sendError = (error: { path: string; message: string }) => {
       win?.webContents.send('scan-error', error);
+      errors.push(error);
     };
+
     const tree = await getFolderTree(folderPath, sendProgress, state, sendError);
-    return tree;
-  } catch (error) {
-    throw error;
+
+    return { tree, errors };
+  } catch (error: any) {
+    return {
+      tree: null,
+      errors: [...errors, { path: folderPath, message: error.message ?? "Erreur inconnue" }],
+    };
   }
 });

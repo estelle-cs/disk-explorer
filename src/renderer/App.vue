@@ -160,7 +160,7 @@
             Aucun fichier ne correspond aux filtres sélectionnés.
           </p>
         </div>
-        <div v-else>
+        <div v-if="!loading && !results">
           <p class="body-m">
             Sélectionnez un dossier pour commencer l'analyse.
           </p>
@@ -268,7 +268,8 @@ async function scanSelectedFolder() {
 
   try {
     const data = await window.electron.invoke("start-scan", selectedPath.value);
-    results.value = data ? [data] : null;
+    results.value = data.tree ? [data.tree] : null;
+    errors.value = data.errors || [];
     scanStatus.value = "done";
 
     const endTime = Date.now();
@@ -281,7 +282,8 @@ async function scanSelectedFolder() {
   }
 }
 
-function getFolderCount(nodes: any[]): number {
+function getFolderCount(nodes: any[] | null): number {
+  if (!Array.isArray(nodes)) return 0;
   let count = 0;
   for (const node of nodes) {
     if (node.children) {
@@ -291,11 +293,13 @@ function getFolderCount(nodes: any[]): number {
   return count;
 }
 
-function getTotalSize(nodes: any[]): number {
+function getTotalSize(nodes: any[] | null): number {
+  if (!Array.isArray(nodes)) return 0;
   return nodes.reduce((sum, node) => sum + node.size, 0);
 }
 
-function getLargeFileCount(nodes: any[]): number {
+function getLargeFileCount(nodes: any[] | null): number {
+  if (!Array.isArray(nodes)) return 0;
   let count = 0;
   for (const node of nodes) {
     if (!node.children && node.size >= 10 * 1e9) count++;

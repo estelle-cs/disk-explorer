@@ -250,11 +250,11 @@ function getSizeTagClass(item: any): string {
 
 .tag-red > .tree-label {
   border-left: 3px solid #EF4444;
-  background-color: #e38d8d;;
+  background-color: #ffefef;;
 }
 .tag-orange > .tree-label {
   border-left: 3px solid #F59E0B;
-  background-color: #ffeac8;
+  background-color: #ffeed3;
 }
 .tag-yellow > .tree-label {
   border-left: 3px solid #FACC15;
